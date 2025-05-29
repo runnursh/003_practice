@@ -1,0 +1,130 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_STAGES 8
+
+// Array to track the status of training stages
+char trainingStatus[MAX_STAGES] = {'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'}; // N = Not attempted, P = Passed, F = Failed
+
+// Function prototypes
+void mainMenu();
+void auditionManagement();
+void trainingMenu();
+void debut();
+void handleTraining(int stage);
+int checkPrerequisites(int stage);
+
+int main() {
+    mainMenu();
+    return 0;
+}
+
+void mainMenu() {
+    char choice;
+    while (1) {
+        printf("\n--- Main Menu ---\n");
+        printf("I. Audition Management (1)\n");
+        printf("II. Training (2)\n");
+        printf("III. Debut (3)\n");
+        printf("Enter 0, Q, or q to quit.\n");
+        printf("Choose an option: ");
+        scanf(" %c", &choice);
+
+        switch (choice) {
+            case '1':
+                auditionManagement();
+                break;
+            case '2':
+                trainingMenu();
+                break;
+            case '3':
+                debut();
+                break;
+            case '0':
+            case 'Q':
+            case 'q':
+                printf("Exiting program.\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    }
+}
+
+void auditionManagement() {
+    printf("\n--- Audition Management ---\n");
+    printf("Feature not implemented yet. Returning to main menu.\n");
+}
+
+void trainingMenu() {
+    char choice;
+    while (1) {
+        printf("\n--- Training Menu ---\n");
+        printf("1. Physical Strength & Knowledge\n");
+        printf("2. Self-Management & Teamwork\n");
+        printf("3. Language & Pronunciation\n");
+        printf("4. Vocal\n");
+        printf("5. Dance\n");
+        printf("6. Visual & Image\n");
+        printf("7. Acting & Stage Performance\n");
+        printf("8. Fan Communication\n");
+        printf("Enter 0 to return to main menu.\n");
+        printf("Choose a training stage: ");
+        scanf(" %c", &choice);
+
+        if (choice == '0') {
+            return;
+        }
+
+        int stage = choice - '1';
+        if (stage >= 0 && stage < MAX_STAGES) {
+            handleTraining(stage);
+        } else {
+            printf("Invalid choice. Try again.\n");
+        }
+    }
+}
+
+void handleTraining(int stage) {
+    if (trainingStatus[stage] == 'P') {
+        printf("\nStage %d is already passed.\n", stage + 1);
+        return;
+    }
+
+    if (checkPrerequisites(stage)) {
+        char evaluationChoice;
+        printf("\nWould you like to enter the evaluation result? (Y/N): ");
+        scanf(" %c", &evaluationChoice);
+
+        if (evaluationChoice == 'Y' || evaluationChoice == 'y') {
+            char passChoice;
+            printf("Did you complete the training and pass the certification? (Y/N): ");
+            scanf(" %c", &passChoice);
+
+            if (passChoice == 'Y' || passChoice == 'y') {
+                trainingStatus[stage] = 'P';
+                printf("Stage %d marked as Passed.\n", stage + 1);
+            } else {
+                trainingStatus[stage] = 'F';
+                printf("Stage %d marked as Failed.\n", stage + 1);
+            }
+        }
+    } else {
+        printf("\nYou must complete stages 1 and 2 in order before accessing this stage.\n");
+    }
+}
+
+int checkPrerequisites(int stage) {
+    if (stage == 0 || stage == 1) {
+        return 1; // Stages 1 and 2 can always be accessed
+    }
+
+    // For stages 3-8, check if stages 1 and 2 are passed
+    return (trainingStatus[0] == 'P' && trainingStatus[1] == 'P');
+}
+
+void debut() {
+    printf("\n--- Debut ---\n");
+    printf("Feature not implemented yet. Returning to main menu.\n");
+}
