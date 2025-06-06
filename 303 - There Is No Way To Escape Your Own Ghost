@@ -1,0 +1,147 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define MAX_LEN 256
+
+struct Trauma {
+    char keyword[10];
+    char message[MAX_LEN];
+};
+
+void charToBinary(char c, char* bin) {
+    for (int i = 7; i >= 0; i--) {
+        bin[7 - i] = ((c >> i) & 1) + '0';
+    }
+    bin[8] = '\0';
+}
+
+void reverseArray(char arr[][9], int size) {
+    for (int i = 0; i < size / 2; i++) {
+        char temp[9];
+        strcpy(temp, arr[i]);
+        strcpy(arr[i], arr[size - 1 - i]);
+        strcpy(arr[size - 1 - i], temp);
+    }
+}
+
+int isRightChar(char bin[][9], int size, char input[]) {
+    for (int i = 0; i < size; i++) {
+        if (input[i] != strtol(bin[i], NULL, 2)) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int isEasterEgg(char* input, const char* keyword) {
+    return strcmp(input, keyword) == 0;
+}
+
+void find_easter_egg() {
+    struct Trauma arthur = {
+        "specter",
+        "I confess. After graduating from university, I was blinded by the arrogance of starting a startup and recklessly blocked my friends' paths. I painfully learned that when I am the only one convinced by my idea, it leads to disastrous results. The past Arthur was a ghost of dogmatism and stubbornness."
+    };
+
+    char binaries[7][9];
+    for (int i = 0; i < 7; i++) {
+        charToBinary(arthur.keyword[i], binaries[i]);
+    }
+
+    reverseArray(binaries, 7);
+
+    printf("<<Arthur's Easter Egg>>\n");
+    printf("Binary codes (in reverse order):\n");
+    for (int i = 0; i < 7; i++) {
+        printf("%s ", binaries[i]);
+    }
+    printf("\nEnter the corresponding characters one by one: ");
+
+    char input[8];
+    scanf("%s", input);
+
+    while (!isRightChar(binaries, 7, input)) {
+        printf("Incorrect. Try again: ");
+        scanf("%s", input);
+    }
+
+    char word[10];
+    printf("Good. Now combine them into a word: ");
+    scanf("%s", word);
+
+    if (isEasterEgg(word, arthur.keyword)) {
+        printf("##Easter Egg Discovered!$$\n");
+        printf("%s\n", arthur.message);
+    } else {
+        printf("Wrong keyword. Returning to Self-Management and Teamwork menu...\n");
+    }
+}
+
+// Bonus: scramble keyword and convert to binary in a custom order
+void scramble_and_convert(const char* keyword) {
+    int len = strlen(keyword);
+    char oddFirst[10], evenNext[10];
+    int o = 0, e = 0;
+
+    for (int i = 0; i < len; i++) {
+        if (i % 2 == 1) {
+            oddFirst[o++] = keyword[i];
+        } else {
+            evenNext[e++] = keyword[i];
+        }
+    }
+    oddFirst[o] = '\0';
+    evenNext[e] = '\0';
+
+    char combined[10];
+    strcpy(combined, oddFirst);
+    strcat(combined, evenNext);
+
+    printf("Scrambled and binary converted: \n");
+    for (int i = strlen(combined) - 1; i >= 0; i--) {
+        char bin[9];
+        charToBinary(combined[i], bin);
+        printf("%c: %s\n", combined[i], bin);
+    }
+}
+
+void self_management_and_teamwork_menu() {
+    char name[20];
+    printf("Enter your name: ");
+    scanf("%s", name);
+
+    if (strcmp(name, "Arthur") == 0) {
+        find_easter_egg();
+    } else {
+        printf("Welcome, %s. This section is under development.\n", name);
+    }
+}
+
+int main() {
+    int menu;
+    while (1) {
+        printf("\n==== Main Menu ====");
+        printf("\n[1] Training");
+        printf("\n[2] Exit\nSelect: ");
+        scanf("%d", &menu);
+
+        if (menu == 1) {
+            int sub;
+            printf("\n[1] Physical Strength & Knowledge\n[2] Self-Management and Teamwork\nSelect: ");
+            scanf("%d", &sub);
+            if (sub == 2) {
+                self_management_and_teamwork_menu();
+            } else {
+                printf("This feature is still in progress.\n");
+            }
+        } else if (menu == 2) {
+            printf("Goodbye!\n");
+            break;
+        } else {
+            printf("Invalid input. Try again.\n");
+        }
+    }
+    return 0;
+}
