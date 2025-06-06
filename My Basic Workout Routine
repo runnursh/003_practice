@@ -1,0 +1,116 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_MEMBERS 4
+#define TESTS 7
+#define MAX_NAME 30
+
+// Members: Name, Nickname
+char member_names[MAX_MEMBERS][MAX_NAME] = {
+    "Goeun", "Woncheol", "Youngjin", "Hyekyung"
+};
+char member_nicks[MAX_MEMBERS][MAX_NAME] = {
+    "GE", "WC", "YJ", "HK"
+};
+
+// Fitness test names
+const char *test_names[TESTS] = {
+    "1-Mile Run (min)", "Speed Sprint (s)", "Push-ups (min)",
+    "Squats (min)", "Arm Strength (min)", "Swimming (min)",
+    "Weightlifting (xBW)"
+};
+
+// Fitness scores: [member][test]
+float health_scores[MAX_MEMBERS][TESTS] = {0};
+
+// Function prototypes
+void setHealth();
+void getHealth();
+void parseFitnessInput(char *input, float *results);
+
+int main() {
+    char choice;
+
+    while (1) {
+        printf("\n--- Main Menu ---\n");
+        printf("1. Audition Management\n");
+        printf("2. Training\n");
+        printf("3. Debut\n");
+        printf("Q. Quit\n");
+        printf("Enter choice: ");
+        scanf(" %c", &choice);
+
+        if (choice == 'q' || choice == 'Q' || choice == '0') break;
+
+        if (choice == '2') {
+            char sub;
+            printf("\n-- Training Menu --\n");
+            printf("1. Physical Strength & Knowledge\n");
+            printf("0. Back\n");
+            printf("Enter choice: ");
+            scanf(" %c", &sub);
+
+            if (sub == '1') {
+                char sub2;
+                printf("\n[1. Physical Strength & Knowledge]\n");
+                printf("A. Enter Fitness Data\n");
+                printf("B. View Fitness Data\n");
+                printf("0. Back\n");
+                printf("Enter choice: ");
+                scanf(" %c", &sub2);
+
+                if (sub2 == 'A' || sub2 == 'a') setHealth();
+                else if (sub2 == 'B' || sub2 == 'b') getHealth();
+            }
+        }
+    }
+
+    printf("Exiting...\n");
+    return 0;
+}
+
+void setHealth() {
+    char input[256];
+    printf("\n--- Enter Fitness Data ---\n");
+    for (int i = 0; i < MAX_MEMBERS; i++) {
+        printf("\nEnter 7 fitness test values for %s (%s):\n", member_names[i], member_nicks[i]);
+        printf("Format: Run, Sprint, Push-ups, Squats, Arm Strength, Swim, Weightlift\n");
+        printf("Input (comma-separated): ");
+        getchar(); // clear newline
+        fgets(input, sizeof(input), stdin);
+        parseFitnessInput(input, health_scores[i]);
+    }
+}
+
+void getHealth() {
+    char nick[MAX_NAME];
+    int found = -1;
+    printf("\nEnter nickname to view fitness data (e.g., GE): ");
+    scanf("%s", nick);
+
+    for (int i = 0; i < MAX_MEMBERS; i++) {
+        if (strcmp(nick, member_nicks[i]) == 0) {
+            found = i;
+            break;
+        }
+    }
+
+    if (found != -1) {
+        printf("\n--- Fitness Data for %s (%s) ---\n", member_names[found], member_nicks[found]);
+        for (int j = 0; j < TESTS; j++) {
+            printf("%s: %.2f\n", test_names[j], health_scores[found][j]);
+        }
+    } else {
+        printf("Nickname not found.\n");
+    }
+}
+
+void parseFitnessInput(char *input, float *results) {
+    char *token = strtok(input, ",");
+    int i = 0;
+    while (token && i < TESTS) {
+        results[i++] = atof(token);
+        token = strtok(NULL, ",");
+    }
+}
