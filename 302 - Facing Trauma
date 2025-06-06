@@ -1,0 +1,222 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <ctype.h>
+
+#define MAX_MEMBERS 16
+#define MAX_QUESTIONS 5
+#define MAX_RESPONSES 3
+#define MAX_STRING 100
+
+// Member trauma info
+typedef struct {
+    char nickname[50];
+    int age;
+    char trauma[MAX_STRING];
+} TraumaInfo;
+
+// Counseling question
+typedef struct {
+    int id;
+    char content[MAX_STRING];
+} CounselingQuestion;
+
+// Counseling response
+typedef struct {
+    char nickname[50];
+    char question[MAX_STRING];
+    char response[MAX_STRING];
+} CounselingResponse;
+
+// Global data
+TraumaInfo traumaList[MAX_MEMBERS] = {
+    {"Nova", 19, ""},
+    {"Echo", 20, ""},
+    {"Rex", 18, ""},
+    {"Lyra", 21, ""},
+    {"Kilo", 20, ""},
+    {"Zane", 19, ""},
+    {"Juno", 18, ""},
+    {"Axel", 22, ""},
+    {"Vega", 19, ""},
+    {"Orin", 20, ""},
+    {"Mira", 18, ""},
+    {"Sage", 21, ""},
+    {"Dara", 20, ""},
+    {"Finn", 19, ""},
+    {"Cleo", 20, ""},
+    {"Nash", 21, ""}
+};
+
+CounselingQuestion questionBank[MAX_QUESTIONS] = {
+    {1, "In what situations have you experienced this trauma?"},
+    {2, "How has this situation affected your daily life and emotions?"},
+    {3, "How have you tried to overcome this trauma?"},
+    {4, "What emotions do you associate with this trauma?"},
+    {5, "What kind of support do you think is necessary to overcome this trauma?"}
+};
+
+CounselingResponse sessionData[MAX_MEMBERS * MAX_RESPONSES];
+int sessionProgress[MAX_MEMBERS] = {0}; // How many questions have been answered per member
+int responseCount = 0;
+
+int findMemberIndex(const char *nickname) {
+    for (int i = 0; i < MAX_MEMBERS; i++) {
+        if (strcmp(traumaList[i].nickname, nickname) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void inputTrauma() {
+    char nickname[50];
+    char trauma[MAX_STRING];
+
+    while (1) {
+        printf("Enter nickname (or 'exit' to return): ");
+        scanf("%s", nickname);
+        if (strcmp(nickname, "exit") == 0) break;
+
+        int index = findMemberIndex(nickname);
+        index != -1 ?
+            (printf("Enter trauma description: "), getchar(), fgets(trauma, MAX_STRING, stdin),
+             trauma[strcspn(trauma, "\n")] = 0, strcpy(traumaList[index].trauma, trauma)) :
+            printf("Nickname not found. Try again.\n");
+    }
+}
+
+void shuffle(int *array, int n) {
+    for (int i = n - 1; i > 0; i--) {
+        int j = rand() % (i + 1);
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
+void counselingSession() {
+    char nickname[50];
+    int index;
+
+    printf("Members with trauma:\n");
+    for (int i = 0; i < MAX_MEMBERS; i++) {
+        if (strlen(traumaList[i].trauma) > 0)
+            printf("- %s\n", traumaList[i].nickname);
+    }
+
+    printf("Enter nickname for counseling: ");
+    scanf("%s", nickname);
+    index = findMemberIndex(nickname);
+
+    if (index == -1 || strlen(traumaList[index].trauma) == 0) {
+        printf("Invalid or no trauma entry.\n");
+        return;
+    }
+
+    int questionIndices[MAX_QUESTIONS] = {0, 1, 2, 3, 4};
+    shuffle(questionIndices, MAX_QUESTIONS);
+
+    for (int i = sessionProgress[index]; i < MAX_RESPONSES; i++) {
+        char response[MAX_STRING];
+        int qIndex = questionIndices[i];
+
+        while (1) {
+            printf("Q%d: %s\n> ", questionBank[qIndex].id, questionBank[qIndex].content);
+            getchar(); // consume newline
+            fgets(response, MAX_STRING, stdin);
+            response[strcspn(response, "\n")] = 0;
+
+            if (strlen(response) == 0 || strlen(response) > 100) {
+                printf("Invalid input. Must be 1-100 characters.\n");
+            } else {
+                strcpy(sessionData[responseCount].nickname, nickname);
+                strcpy(sessionData[responseCount].question, questionBank[qIndex].content);
+                strcpy(sessionData[responseCount].response, response);
+                responseCount++;
+                sessionProgress[index]++;
+                break;
+            }
+        }
+
+        if (sessionProgress[index] < MAX_RESPONSES) {
+            printf("Session paused. You may resume later.\n");
+            return;
+        }
+    }
+
+    printf("Counseling session for %s completed.\n", nickname);
+}
+
+void viewCounselingResult() {
+    char nickname[50];
+    printf("Enter nickname to view counseling record: ");
+    scanf("%s", nickname);
+    int index = findMemberIndex(nickname);
+
+    if (index == -1 || sessionProgress[index] < MAX_RESPONSES) {
+        printf("Counseling not completed or nickname invalid.\n");
+        return;
+    }
+
+    printf("\nNickname: %s\nTrauma: %s\nResponses:\n", nickname, traumaList[index].trauma);
+    for (int i = 0; i < responseCount; i++) {
+        if (strcmp(sessionData[i].nickname, nickname) == 0) {
+            printf("- Q: %s\n  A: %s\n", sessionData[i].question, sessionData[i].response);
+        }
+    }
+}
+
+void traumaSubMenu() {
+    char choice;
+    do {
+        printf("\n[Trauma Management Menu]\n");
+        printf("A. Input Trauma\n");
+        printf("B. Start Counseling Session\n");
+        printf("C. View Counseling Record\n");
+        printf("X. Back to Main Menu\n");
+        printf("Select an option: ");
+        scanf(" %c", &choice);
+        choice = toupper(choice);
+
+        switch (choice) {
+            case 'A': inputTrauma(); break;
+            case 'B': counselingSession(); break;
+            case 'C': viewCounselingResult(); break;
+            case 'X': break;
+            default: printf("Invalid option.\n");
+        }
+    } while (choice != 'X');
+}
+
+void mainMenu() {
+    char choice;
+    do {
+        printf("\n[Main Menu]\n");
+        printf("1. Self-Management and Teamwork\n");
+        printf("X. Exit\n");
+        printf("Select an option: ");
+        scanf(" %c", &choice);
+        choice = toupper(choice);
+
+        if (choice == '1') {
+            printf("\n[A. Mentoring]\n[B. Trauma Management]\nSelect: ");
+            scanf(" %c", &choice);
+            choice = toupper(choice);
+            if (choice == 'B') {
+                traumaSubMenu();
+            } else {
+                printf("Mentoring not implemented in this section.\n");
+            }
+        } else if (choice != 'X') {
+            printf("Invalid option.\n");
+        }
+    } while (choice != 'X');
+}
+
+int main() {
+    srand((unsigned int)time(NULL));
+    mainMenu();
+    return 0;
+}
