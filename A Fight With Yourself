@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX_TRAINEES 16
+#define MAX_MENTORS 8
+
+typedef struct {
+    int id;
+    char name[50];
+    int matchedTraineeID;
+} Mentor;
+
+int getRandomAbility() {
+    return 100 + rand() % 901;  // 100 to 1000
+}
+
+void parseIntMember(char trainees[][50], int traineeInts[], int count) {
+    for (int i = 0; i < count; i++) {
+        int sum = 0;
+        for (int j = 0; trainees[i][j] != '\0'; j++) {
+            sum += (int)trainees[i][j];
+        }
+        traineeInts[i] = sum;
+    }
+}
+
+void initializeTrainees(char trainees[][50], int traineeInts[], int abilities[], int count) {
+    parseIntMember(trainees, traineeInts, count);
+    for (int i = 0; i < count; i++) {
+        abilities[i] = getRandomAbility();
+    }
+}
+
+void inputMentors(Mentor mentors[], int *mentorCount) {
+    printf("Enter up to 8 mentors:\n");
+    for (int i = 0; i < MAX_MENTORS; i++) {
+        printf("Mentor #%d name: ", i + 1);
+        scanf("%s", mentors[i].name);
+        mentors[i].id = i + 1;
+        mentors[i].matchedTraineeID = -1;
+    }
+    *mentorCount = MAX_MENTORS;
+}
+
+void matchMentoring(char trainees[][50], int traineeInts[], int abilities[], Mentor mentors[], int traineeCount, int mentorCount) {
+    int usedMentorIDs[MAX_MENTORS] = {0};
+
+    for (int i = 0; i < traineeCount; i++) {
+        int matchID = i % mentorCount;
+
+        // Bonus: ensure 1:1 match
+        while (usedMentorIDs[matchID] == 1) {
+            matchID = (matchID + 1) % mentorCount;
+        }
+        mentors[matchID].matchedTraineeID = i;
+        usedMentorIDs[matchID] = 1;
+    }
+}
+
+void displayMatches(int traineeInts[], Mentor mentors[], int traineeCount) {
+    printf("\nMentor Assignments:\n");
+    for (int i = 0; i < MAX_MENTORS; i++) {
+        if (mentors[i].matchedTraineeID != -1) {
+            printf("Trainee #%d -> Mentor ID %d (%s)\n",
+                   mentors[i].matchedTraineeID,
+                   mentors[i].id,
+                   mentors[i].name);
+        }
+    }
+}
+
+int main() {
+    srand(time(NULL));
+    
+    char trainees[MAX_TRAINEES][50] = {
+        "Nova", "Echo", "Rex", "Lyra", "Kilo", "Zane", "Juno", "Axel",
+        "Vega", "Orin", "Mira", "Sage", "Dara", "Finn", "Cleo", "Nash"
+    };
+    int traineeInts[MAX_TRAINEES];
+    int abilities[MAX_TRAINEES];
+    Mentor mentors[MAX_MENTORS];
+    int mentorCount = 0;
+
+    initializeTrainees(trainees, traineeInts, abilities, MAX_TRAINEES);
+    inputMentors(mentors, &mentorCount);
+    matchMentoring(trainees, traineeInts, abilities, mentors, MAX_TRAINEES, mentorCount);
+    displayMatches(traineeInts, mentors, MAX_TRAINEES);
+
+    return 0;
+}
