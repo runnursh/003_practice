@@ -1,0 +1,162 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+#define MAX_QUESTIONS 10
+#define QUIZ_QUESTIONS 5
+#define MAX_TRAINEES 4
+#define MAX_NAME 50
+
+typedef struct {
+    int questionID;
+    char content[256];
+    char correctAnswer[256];
+} Question;
+
+typedef struct {
+    char name[MAX_NAME];
+    char nickname[MAX_NAME];
+    char nationality[MAX_NAME];
+    int score;
+    char passStatus; // 'Y' or 'N'
+} Trainee;
+
+typedef struct {
+    int questionID;
+    char correctness; // 'O' or 'X'
+} Answer;
+
+// Korean question bank
+Question questionBank[MAX_QUESTIONS] = {
+    {1, "What is 'hello' in Korean?", "안녕하세요"},
+    {2, "What is 'thank you' in Korean?", "감사합니다"},
+    {3, "What is 'love' in Korean?", "사랑"},
+    {4, "What is 'yes' in Korean?", "네"},
+    {5, "What is 'no' in Korean?", "아니요"},
+    {6, "What is 'sorry' in Korean?", "죄송합니다"},
+    {7, "What is 'please' in Korean?", "부탁합니다"},
+    {8, "What is 'goodbye' in Korean?", "안녕히 가세요"},
+    {9, "What is 'friend' in Korean?", "친구"},
+    {10, "What is 'delicious' in Korean?", "맛있어요"}
+};
+
+// Millieways trainees
+Trainee trainees[MAX_TRAINEES] = {
+    {"Liam Smith", "Limo", "USA", 0, 'N'},
+    {"Alice Wang", "Ailee", "China", 0, 'N'},
+    {"Takashi Ito", "Taka", "Japan", 0, 'N'},
+    {"Park Ji-yeon", "Jiji", "Korea", 0, 'N'}  // Korean native, should not take quiz
+};
+
+// Function to check if answer is correct
+char isAnswer(int qIndex, const char *answer) {
+    if (strcmp(questionBank[qIndex].correctAnswer, answer) == 0)
+        return 'O';
+    else
+        return 'X';
+}
+
+// Randomly select a trainee who is not Korean
+int selectRandomTakers() {
+    srand(time(NULL));
+    int index;
+    do {
+        index = rand() % MAX_TRAINEES;
+    } while (strcmp(trainees[index].nationality, "Korea") == 0);
+
+    printf("\nWelcome, %s, to the Korean quiz session!\n\n", trainees[index].name);
+    return index;
+}
+
+// Serve a quiz of 5 random questions
+void serveRandomQuiz(int traineeIndex) {
+    int askedIndexes[QUIZ_QUESTIONS];
+    Answer answers[QUIZ_QUESTIONS];
+    int score = 0;
+
+    printf("The quiz will begin in 30 seconds...\n");
+    sleep(30);
+
+    srand(time(NULL));
+    int count = 0;
+    while (count < QUIZ_QUESTIONS) {
+        int q = rand() % MAX_QUESTIONS;
+
+        // Check for duplicates
+        int alreadyAsked = 0;
+        for (int i = 0; i < count; i++) {
+            if (askedIndexes[i] == q) {
+                alreadyAsked = 1;
+                break;
+            }
+        }
+        if (alreadyAsked) continue;
+
+        askedIndexes[count] = q;
+
+        printf("Q%d: %s\n", count + 1, questionBank[q].content);
+
+        char userAnswer[256];
+        printf("Your answer: ");
+        scanf(" %[^\n]", userAnswer);
+
+        answers[count].questionID = questionBank[q].questionID;
+        answers[count].correctness = isAnswer(q, userAnswer);
+
+        if (answers[count].correctness == 'O') {
+            score += 20;
+        }
+
+        count++;
+    }
+
+    // Save results
+    trainees[traineeIndex].score = score;
+    trainees[traineeIndex].passStatus = (score >= 80) ? 'Y' : 'N';
+
+    // Show result summary
+    printf("\n--- Answer Sheet ---\n");
+    for (int i = 0; i < QUIZ_QUESTIONS; i++) {
+        printf("Q%d (ID %d): %s\n", i + 1, answers[i].questionID,
+               answers[i].correctness == 'O' ? "Correct" : "Wrong");
+    }
+
+    printf("\nTotal Score: %d\n", score);
+    printf("Pass Status: %c\n", trainees[traineeIndex].passStatus);
+}
+
+// Main entry to Korean quiz
+void testKoreanLang() {
+    int traineeIndex = selectRandomTakers();
+    serveRandomQuiz(traineeIndex);
+}
+
+// Simple menu to call the quiz
+void showMenu() {
+    int choice;
+    while (1) {
+        printf("\n=== Millieways Training Menu ===\n");
+        printf("1. Start Korean Quiz\n");
+        printf("0. Exit\n");
+        printf("Select an option: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                testKoreanLang();
+                break;
+            case 0:
+                printf("Exiting program.\n");
+                return;
+            default:
+                printf("Invalid option. Try again.\n");
+        }
+    }
+}
+
+int main() {
+    showMenu();
+    return 0;
+}
